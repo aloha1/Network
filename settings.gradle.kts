@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Network RoadMap"
+rootProject.name = "NetWork RoadMap"
 include(":app")
  
