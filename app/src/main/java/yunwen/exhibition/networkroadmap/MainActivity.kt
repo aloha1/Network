@@ -16,7 +16,6 @@ import yunwen.exhibition.networkroadmap.ui.theme.NetWorkRoadMapTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             NetWorkRoadMapTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
