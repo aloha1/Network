@@ -4,10 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -45,9 +46,24 @@ class MainActivity : ComponentActivity() {
         init()
         setContent {
             NetWorkRoadMapTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(viewModel = viewModel)
-                    //OkHttpScreen(viewModel = viewModel)
+                val navController = rememberNavController()
+                Scaffold(modifier = Modifier.fillMaxSize(),
+                    bottomBar = { BottomNavigationBar(navController = navController) }) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = HomeDestination.route
+                    ) {
+                        composable(HomeDestination.route) {
+                            HomeScreen(
+                                viewModel = viewModel
+                            )
+                        }
+                        composable(OkHttpDestination.route) {
+                            OkHttpScreen(
+                                viewModel = viewModel
+                            )
+                        }
+                    }
                 }
             }
         }
