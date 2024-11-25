@@ -23,13 +23,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import yunwen.exhibition.networkroadmap.Constants.BASE_URL
+import yunwen.exhibition.networkroadmap.Constants.UNKNOWN_ERROR
 import yunwen.exhibition.networkroadmap.MainActivity.Companion.TAG
 import yunwen.exhibition.networkroadmap.ui.theme.NetWorkRoadMapTheme
+import java.io.IOException
 
 class MainActivity : ComponentActivity() {
-    companion object{
+    companion object {
         const val TAG = "MyTag"
     }
+
     private lateinit var viewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +47,7 @@ class MainActivity : ComponentActivity() {
             NetWorkRoadMapTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     HomeScreen(viewModel = viewModel)
+                    //OkHttpScreen(viewModel = viewModel)
                 }
             }
         }
@@ -49,6 +59,32 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun OkHttpScreen(viewModel: MainViewModel) {
+    var responseText by remember { mutableStateOf("") }
+    LaunchedEffect(key1 = Unit) {
+        val client = OkHttpClient()
+        val request = Request.Builder().url("$BASE_URL/api/character")
+            .build()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                responseText = e.message ?: ""
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                responseText = if (response.isSuccessful) {
+                    response.body?.string() ?: ""
+                } else {
+                    UNKNOWN_ERROR + " code: " + response.code
+                }
+            }
+        })
+    }
+    Column {
+        Text(text = responseText)
+    }
+}
+
+@Composable
 fun HomeScreen(viewModel: MainViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     var data: NetData? by remember { mutableStateOf(null) }
@@ -56,6 +92,7 @@ fun HomeScreen(viewModel: MainViewModel) {
         is UiState.Loading -> {
             Log.d(TAG, "Loading")
         }
+
         is UiState.Success -> {
             data = (uiState as UiState.Success).data
             Log.d(TAG, "success: $data")
@@ -66,7 +103,7 @@ fun HomeScreen(viewModel: MainViewModel) {
             Log.d(TAG, "error:" + (uiState as UiState.Error).message)
         }
     }
-    LaunchedEffect(key1 = Unit){
+    LaunchedEffect(key1 = Unit) {
         viewModel.fetchData()
     }
     data?.let {
