@@ -1,5 +1,8 @@
 package yunwen.exhibition.networkroadmap
 
-interface ApiService {
+import retrofit2.http.GET
 
+interface ApiService {
+    @GET("api/character")
+    suspend fun getData(): NetData
 }
