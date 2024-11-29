@@ -24,8 +24,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -34,6 +36,7 @@ import yunwen.exhibition.networkroadmap.Constants.UNKNOWN_ERROR
 import yunwen.exhibition.networkroadmap.MainActivity.Companion.TAG
 import yunwen.exhibition.networkroadmap.ui.theme.NetWorkRoadMapTheme
 import java.io.IOException
+
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -50,8 +53,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize(),
                     bottomBar = { BottomNavigationBar(navController = navController) }) { innerPadding ->
                     NavHost(
-                        navController = navController,
-                        startDestination = HomeDestination.route
+                        navController = navController, startDestination = HomeDestination.route
                     ) {
                         composable(HomeDestination.route) {
                             HomeScreen(
@@ -76,27 +78,34 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun OkHttpScreen(viewModel: MainViewModel) {
+    var data: NetData? by remember { mutableStateOf(null) }
     var responseText by remember { mutableStateOf("") }
     LaunchedEffect(key1 = Unit) {
-        val client = OkHttpClient()
-        val request = Request.Builder().url("$BASE_URL/api/character")
-            .build()
+        val client = OkHttpClient.Builder().dispatcher(Dispatcher().apply {
+            maxRequests = 5
+            maxRequestsPerHost = 2
+        }).build()
+        val request = Request.Builder().url("$BASE_URL/api/character").build()
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 responseText = e.message ?: ""
             }
 
             override fun onResponse(call: Call, response: Response) {
-                responseText = if (response.isSuccessful) {
-                    response.body?.string() ?: ""
+                if (response.isSuccessful) {
+                    responseText = response.body?.string() ?: ""
+                    data = Gson().fromJson<NetData>(
+                        responseText, NetData::class.java
+                    )
                 } else {
-                    UNKNOWN_ERROR + " code: " + response.code
+                    responseText = UNKNOWN_ERROR + " code: " + response.code
                 }
             }
         })
     }
-    Column {
-        Text(text = responseText)
+
+    data?.let {
+        ItemsScreen(it)
     }
 }
 
@@ -131,25 +140,19 @@ fun HomeScreen(viewModel: MainViewModel) {
 @Composable
 fun ItemsScreen(data: NetData) {
     LazyColumn {
-        items(
-            items = data.results,
-            itemContent = { item ->
-                Column {
-                    Text(
-                        text = item.name,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = item.status,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = item.species,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+        items(items = data.results, itemContent = { item ->
+            Column {
+                Text(
+                    text = item.name, style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = item.status, style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = item.species, style = MaterialTheme.typography.bodyMedium
+                )
             }
-        )
+        })
     }
 
 }
@@ -157,6 +160,5 @@ fun ItemsScreen(data: NetData) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    NetWorkRoadMapTheme {
-    }
+    NetWorkRoadMapTheme {}
 }
