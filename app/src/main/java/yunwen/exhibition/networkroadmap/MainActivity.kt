@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -18,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
@@ -53,15 +56,20 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize(),
                     bottomBar = { BottomNavigationBar(navController = navController) }) { innerPadding ->
                     NavHost(
-                        navController = navController, startDestination = HomeDestination.route
+                        navController = navController, startDestination = RetrofitDestination.route
                     ) {
-                        composable(HomeDestination.route) {
-                            HomeScreen(
+                        composable(RetrofitDestination.route) {
+                            RetrofitScreen(
                                 viewModel = viewModel
                             )
                         }
                         composable(OkHttpDestination.route) {
                             OkHttpScreen(
+                                viewModel = viewModel
+                            )
+                        }
+                        composable(GraphQLDestination.route) {
+                            GraphQLScreen(
                                 viewModel = viewModel
                             )
                         }
@@ -74,6 +82,11 @@ class MainActivity : ComponentActivity() {
     private fun init() {
         viewModel = ViewModelProvider(this)[MainViewModel::class]
     }
+}
+
+@Composable
+fun GraphQLScreen(viewModel: MainViewModel) {
+
 }
 
 @Composable
@@ -110,30 +123,34 @@ fun OkHttpScreen(viewModel: MainViewModel) {
 }
 
 @Composable
-fun HomeScreen(viewModel: MainViewModel) {
+fun RetrofitScreen(viewModel: MainViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     var data: NetData? by remember { mutableStateOf(null) }
-    when (uiState) {
-        is UiState.Loading -> {
-            Log.d(TAG, "Loading")
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (uiState) {
+            is UiState.Loading -> {
+                Log.d(TAG, "Loading")
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+
+            is UiState.Success -> {
+                data = (uiState as UiState.Success).data
+                Log.d(TAG, "success: $data")
+
+            }
+
+            is UiState.Error -> {
+                Log.d(TAG, "error:" + (uiState as UiState.Error).message)
+            }
         }
-
-        is UiState.Success -> {
-            data = (uiState as UiState.Success).data
-            Log.d(TAG, "success: $data")
-
+        LaunchedEffect(key1 = Unit) {
+            viewModel.fetchData()
         }
-
-        is UiState.Error -> {
-            Log.d(TAG, "error:" + (uiState as UiState.Error).message)
+        data?.let {
+            ItemsScreen(it)
         }
     }
-    LaunchedEffect(key1 = Unit) {
-        viewModel.fetchData()
-    }
-    data?.let {
-        ItemsScreen(it)
-    }
+
 
 }
 

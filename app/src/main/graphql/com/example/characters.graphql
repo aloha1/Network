@@ -1,0 +1,18 @@
+query Characters{
+    characters{
+        info {
+            count
+        }
+        results {
+            name
+            status
+            species
+        }
+    }
+    location(id: 1) {
+        id
+    }
+    episodesByIds(ids: [1, 2]) {
+        id
+    }
+}

@@ -14,17 +14,17 @@ fun BottomNavigationBar(navController: NavController) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val curRoute = navBackStackEntry?.destination?.route
 
-        NavigationBarItem(
-            icon = { },
-            label = { Text(text = HomeDestination.route) },
-            selected = curRoute == HomeDestination.route,
-            onClick = { navController.navigate(HomeDestination.route) }
-        )
-        NavigationBarItem(
-            icon = { },
+        NavigationBarItem(icon = {},
+            label = { Text(text = RetrofitDestination.route) },
+            selected = curRoute == RetrofitDestination.route,
+            onClick = { navController.navigate(RetrofitDestination.route) })
+        NavigationBarItem(icon = {},
             label = { Text(text = OkHttpDestination.route) },
             selected = curRoute == OkHttpDestination.route,
-            onClick = { navController.navigate(OkHttpDestination.route) }
-        )
+            onClick = { navController.navigate(OkHttpDestination.route) })
+        NavigationBarItem(icon = {},
+            label = { Text(text = GraphQLDestination.route) },
+            selected = curRoute == GraphQLDestination.route,
+            onClick = { navController.navigate(GraphQLDestination.route) })
     }
 }

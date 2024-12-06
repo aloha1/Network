@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.apollographql.apollo3").version("3.7.3")
 }
 
 android {
@@ -38,7 +39,11 @@ android {
         compose = true
     }
 }
-
+apollo {
+    service("service") {
+        packageName.set("com.example")
+    }
+}
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -61,5 +66,5 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.material3)
-
+    implementation(libs.apollo.runtime)
 }
